@@ -1,0 +1,48 @@
+
+# ------------------------ INITIALIZATION ----------------------------
+units 		lj
+dimension	3
+boundary	p	p	p
+atom_style	atomic
+
+# ----------------------- ATOM DEFINITION ----------------------------
+#lattice		fcc 4.58
+region		myregion block 0 50 0 50 0 50
+create_box	2 myregion
+
+create_atoms 1 random 1500 1234 myregion
+create_atoms 2 random 200  123  myregion
+
+
+mass 1 39.948
+mass 2 20.0
+
+# ------------------------ FORCE FIELDS ------------------------------
+pair_style	lj/cut 3.5
+pair_coeff	1 1 1.0 1.0
+pair_coeff	2 2 1.0 1.0
+neigh_modify every 1 delay 5 check yes
+
+
+# ------------------------  MINIMIZATION ------------------------------
+minimize 1.0e-20 1.0e-20 10000 10000
+
+timestep 0.001
+
+# ------------------------  EQUILIBRATION ------------------------------
+velocity all create 400 12345 dist gaussian mom yes rot no
+fix 1 all nve
+
+dump 		dump_1 all custom 250 yt.dump id type x y z ix iy iz  vx vy vz 
+thermo_style	custom step time temp pe ke etotal press vol
+
+
+thermo 250
+run 100000
+
+undump dump_1
+unfix 1
+ 
+######################################
+# SIMULATION DONE
+print "All done"

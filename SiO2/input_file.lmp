@@ -1,0 +1,48 @@
+#
+units       real
+dimension   3
+boundary    p p p
+
+atom_style  charge
+read_data SiO2.data
+
+# outputs
+thermo    100
+thermo_style   custom step temp pe press vol lx density
+dump  2 all custom 1000 md.lammpstrj id type x y z 
+
+minimize 1.0e-10 1.0e-10 10000 10000 
+
+# intial mixing
+fix     1 all nvt temp 5000 5000 100
+run     200000 
+unfix   1
+
+fix     1 all npt temp 5000 5000 100 iso 0 0 1000
+run     100000 
+unfix   1
+
+# cooling
+fix     1 all npt temp 5000 300 100 iso 0 0 1000
+run     4700000 
+unfix   1
+
+# final relaxation
+fix     1 all npt temp 300 300 100 iso 0 0 1000
+run     100000 
+unfix   1
+
+write_data  5300k.data
+
+# BKS potentials
+pair_style  buck/coul/long 5.5 10 
+pair_coeff  1    1   0.0           1.0         0.0
+pair_coeff  1    2   414612.50     0.20520     3075.278
+pair_coeff  2    2   31982.360     0.36231     4030.1136
+
+# MD parameters
+kspace_style    ewald 1.0e-5
+neighbor        2.0 bin
+neigh_modify    every 1 check yes
+timestep        1.0
+
